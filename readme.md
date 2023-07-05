@@ -14,6 +14,20 @@ conda env create -f environment.yaml
 conda activate cnn
 ```
 
+## 프로젝트 실행
+
+### 디버깅
+
+```bash
+gradio main.py
+```
+
+### 실제 어플리케이션
+
+```bash
+python main.py
+```
+
 ## 사용 모델
 
 [YOLOS](https://huggingface.co/hustvl/yolos-tiny)
