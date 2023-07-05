@@ -306,4 +306,3 @@ dependencies:
   - pip:
     - torchaudio==2.0.2
     - torchvision==0.15.2
-prefix: C:\Users\thinl\scoop\apps\mambaforge\current\envs\cnn
