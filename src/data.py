@@ -58,7 +58,7 @@ def load_frames(path: str) -> list:
 
 
 def extract_frames_realtime(video_path: str, target_fps=1):
-    """Extract frames as PNG file from video and save them to folder.
+    """Extract frames as cv2 image object from video and save them to folder.
 
     Args:
         video_path (str): Path to video file
