@@ -13,3 +13,9 @@ conda env create -f environment.yaml
 ```bash
 conda activate cnn
 ```
+
+## 사용 모델
+
+[YOLOS](https://huggingface.co/hustvl/yolos-tiny)
+
+[YOLOv8](https://huggingface.co/ultralyticsplus/yolov8s)
