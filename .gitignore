@@ -160,5 +160,5 @@ cython_debug/
 #.idea/
 
 .vscode
-data/*.mp4
+*.mp4
 ultralyticsplus
