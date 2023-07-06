@@ -57,12 +57,12 @@ def load_frames(path: str) -> list:
     return frames
 
 
-def extract_frames_realtime(video_path: str, target_fps=1):
+def extract_frames_realtime(video_path: str, target_fps=0):
     """Extract frames as cv2 image object from video and save them to folder.
 
     Args:
         video_path (str): Path to video file
-        target_fps (int, optional): Target fps. Defaults to 1
+        target_fps (int, optional): Target fps. Defaults to 0. If 0, then target fps is video fps
 
     Yield:
         frame: cv2 image object
@@ -80,10 +80,14 @@ def extract_frames_realtime(video_path: str, target_fps=1):
     capture = cv2.VideoCapture(video_path)
 
     capture_fps = round(capture.get(cv2.CAP_PROP_FPS))
+
+    if target_fps == 0:
+        target_fps = capture_fps
+    
     frame_interval = int(capture_fps / target_fps)
-
+    
     current_frame = 0
-
+    
     while capture.isOpened():
         ret, frame = capture.read()
 
@@ -92,6 +96,6 @@ def extract_frames_realtime(video_path: str, target_fps=1):
             return
 
         if current_frame % frame_interval == 0:
-            yield cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            yield frame
         
         current_frame += 1

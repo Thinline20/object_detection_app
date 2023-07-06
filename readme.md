@@ -14,6 +14,12 @@ conda env create -f environment.yaml
 conda activate cnn
 ```
 
+### 콘다 가상환경 업데이트
+
+```bash
+conda env update --file environment.yaml --prune
+```
+
 ## 프로젝트 실행
 
 ### 디버깅
