@@ -286,8 +286,8 @@ def process_video(video, output_path: str, conf: float, iou: float, agnostic_nms
     capture.release()
 
     # yield processed_frame, labels, output_path
-    q.put([processed_frame, labels, output_path])
-    video.release()
+    q.put([processed_frame, labels, True])
+    # video.release()
     
     return
 
@@ -300,70 +300,125 @@ st.title("Object Detection")
 
 video_files = glob.glob("data/*.mp4")
 video_files.insert(0, "")
-processed_video = None
 
-col1, col2 = st.columns(2)
 stop_process = False
 
 q = queue.Queue()
 
+data = [None, None, None]
+
 with st.container():
-    with col1:
-        if len(video_files) == 0:
-            st.write(
-                f"Put some video files in directory `data/` to activate this player."
-            )
+    if len(video_files) == 0:
+        st.write(
+            f"Put some video files in directory `data/` to activate this player."
+        )
 
-        else:
-            filename = st.selectbox(
-                "Select a video file from directory `data/`", video_files, 0
-            )
-            if filename != "":
-                video = st.video(filename)
-
-        conf_slider = st.slider("Confidence", 0.0, 1.0, 0.5, 0.01)
-        iou_slider = st.slider("IoU", 0.0, 1.0, 0.45, 0.01)
-        agnostic_nms_checkbox = st.checkbox("Agnostic NMS")
-        output_path = st.text_input("Output path", "out/output.mp4")
-
-
-        run = st.button("Run")
-
-        if run:
-            stop_process = False
-            processed_video = None
-
-    with col2:
+    else:
+        filename = st.selectbox(
+            "Select a video file from directory `data/`", video_files, 0
+        )
         if filename != "":
-            # image_gen = process_video(
-            #     filename, output_path, conf_slider, iou_slider, agnostic_nms_checkbox
-            # )
+            video = st.video(filename)
 
-            placeholder = st.empty()
+    conf_slider = st.slider("Confidence", 0.0, 1.0, 0.5, 0.01)
+    iou_slider = st.slider("IoU", 0.0, 1.0, 0.45, 0.01)
+    agnostic_nms_checkbox = st.checkbox("Agnostic NMS")
+    output_path = st.text_input("Output path", "out/output.mp4")
+
+    run = st.button("Run")
+
+    if run:
+        processed_video = None
+
+if run:
+    frame1 = st.empty()
+    frame2 = st.empty()
+
+    threading.Thread(
+        target=process_video,
+        daemon=is_exit_target_if_main_exits,
+        args=(
+            filename,
+            output_path,
+            conf_slider,
+            iou_slider,
+            agnostic_nms_checkbox,
+        ),
+    ).start()
+    
+    while True:
+        data = q.get()
+
+        with st.container():
+            with frame1.container():
+                st.image(data[0], channels="RGB")
+                
+            if data[2]:
+                break
+
+    with st.container():
+        with frame2.container():
+            st.text(output_path)
+            st.video(output_path)
             
-            if run:
-                threading.Thread(
-                    target=process_video,
-                    daemon=is_exit_target_if_main_exits,
-                    args=(
-                        filename,
-                        output_path,
-                        conf_slider,
-                        iou_slider,
-                        agnostic_nms_checkbox,
-                    ),
-                ).start()
+
+# with col2:
+#     if filename != "":
+#         # image_gen = process_video(
+#         #     filename, output_path, conf_slider, iou_slider, agnostic_nms_checkbox
+#         # )
+
+#         if run:
+#             frame1 = st.empty()
+#             frame2 = st.empty()
+
+#             threading.Thread(
+#                 target=process_video,
+#                 daemon=is_exit_target_if_main_exits,
+#                 args=(
+#                     filename,
+#                     output_path,
+#                     conf_slider,
+#                     iou_slider,
+#                     agnostic_nms_checkbox,
+#                 ),
+#             ).start()
+
+#             while True:
+#                 data = q.get()
+                
+#                 with frame1.container():
+#                     st.image(data[0], channels="RGB")
                     
-                with placeholder.container():
-                    while True:
-                        data = q.get()
-                        placeholder.image(data[0], channels="RGB")
+#                 if data[2]:
+#                     break
+
+#             with frame1.container():
+#                 st.image(data[0], channels="RGB")
+                
+#             with frame2.container():
+#                 st.video(data[2])
+
+                        
                     
-                        if data[2]:
-                            processed_video = data[2]
-                            break
+                # with frame1.container():
+                #     while True:
+                #         data = q.get()
+                #         frame1.image(data[0], channels="RGB")
+                    
+                #         if data[2]:
+                #             processed_video = data[2]
+                #             break
                             
-                        q.task_done()
+                #         q.task_done()
+                
+                # with frame2.container():
+                    
+                
+                # with frame3.container():
+                #     if fin and processed_video:
+                #         st.video(processed_video)
+
                 # while not stop_process or not fin:
                 #     with st.empty():
                 #         for i, j, k in image_gen:
@@ -376,6 +431,3 @@ with st.container():
 
                 #         if processed_video:
                 #             break
-
-            if fin and processed_video:
-                st.video(processed_video)
