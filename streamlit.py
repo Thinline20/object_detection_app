@@ -1,9 +1,14 @@
 import cv2
+from matplotlib import pyplot as plt
 from ultralyticsplus import YOLO, render_result
 import streamlit as st
 import glob
 import queue
+from collections import Counter
 import threading
+import plotly.figure_factory as ff
+import plotly.express as px
+import pandas as pd
 
 model = YOLO("ultralyticsplus/yolov8n")
 
@@ -96,6 +101,89 @@ base_label = {
     79: "hair drier",
     80: "toothbrush",
 }
+
+
+dangerous_level = {
+    "person": 1,
+    "bicycle": 5,
+    "car": 5,
+    "motorcycle": 5,
+    "airplane": 5,
+    "bus": 5,
+    "train": 5,
+    "truck": 5,
+    "boat": 5,
+    "traffic light": 4,
+    "fire hydrant": 3,
+    "stop sign": 2,
+    "parking meter": 2,
+    "bench": 2,
+    "bird": 3,
+    "cat": 3,
+    "dog": 3,
+    "horse": 3,
+    "sheep": 3,
+    "cow": 5,
+    "elephant": 5,
+    "bear": 5,
+    "zebra": 5,
+    "giraffe": 5,
+    "backpack": 1,
+    "umbrella": 1,
+    "handbag": 1,
+    "tie": 1,
+    "suitcase": 1,
+    "frisbee": 3,
+    "skis": 3,
+    "snowboard": 3,
+    "sports ball": 3,
+    "kite": 1,
+    "baseball bat": 3,
+    "baseball glove": 3,
+    "skateboard": 3,
+    "tennis racket": 3,
+    "bottle": 1,
+    "wine glass": 3,
+    "cup": 3,
+    "fork": 4,
+    "knife": 5,
+    "spoon": 1,
+    "bowl": 3,
+    "banana": 1,
+    "apple": 1,
+    "sandwich": 1,
+    "orange": 1,
+    "brocoli": 1,
+    "carrot": 1,
+    "hot dog": 1,
+    "pizza": 1,
+    "donut": 1,
+    "cake": 1,
+    "chair": 3,
+    "couch": 1,
+    "potted plant": 4,
+    "bed": 1,
+    "dining table": 1,
+    "toilet": 1,
+    "tv": 1,
+    "laptop": 1,
+    "mouse": 1,
+    "remote": 1,
+    "keyboard": 1,
+    "cell phone": 1,
+    "microwave": 1,
+    "oven": 5,
+    "toaster": 4,
+    "sink": 1,
+    "refrigerator": 1,
+    "book": 1,
+    "clock": 1,
+    "vase": 1,
+    "scissors": 1,
+    "teddy bear": 1,
+    "hair drier": 3,
+    "toothbrush": 1,
+}      
 
 
 def box_label(image, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255)):
@@ -333,6 +421,7 @@ with st.container():
 if run:
     frame1 = st.empty()
     frame2 = st.empty()
+    frame3 = st.empty()
 
     threading.Thread(
         target=process_video,
@@ -349,85 +438,48 @@ if run:
     while True:
         data = q.get()
 
+        danger_list = {i: [0, 0] for i in set(data[1])}
+        counter = dict(Counter(data[1]))
+        hist_data = [0, 0, 0, 0, 0]
+        
+        for i, j in danger_list.items():
+            j[0] = dangerous_level[i]
+            j[1] = counter[i]
+            
+            hist_data[j[0] - 1] += j[1]
+
+        # df = pd.DataFrame.from_dict(counter, orient="index").reset_index()
+        df = pd.DataFrame.from_dict(danger_list, orient="index", columns=["level", "count"])
+        
+        # danger_list = [dangerous_level[label] for label in data[1]]
+        # danger_set = set(danger_list)
+        
+        # for i in range(1, 6):
+        #     count = 0
+            
+        #     for v in danger_list:
+        #         if v == i:
+        #             count += 1
+                    
+        #     counter[i] = count
+                
+        # df = pd.DataFrame.from_dict(counter, orient="index")
+
         with st.container():
             with frame1.container():
                 st.image(data[0], channels="RGB")
                 
+            with frame2.container():
+                # fig = px.histogram(df, x=range(1, 6), y="count")
+                fig = px.bar(x=range(1,6), y=hist_data)
+
+                st.plotly_chart(fig)
+                st.dataframe(df, use_container_width=True)
+                # st.text(df)
+                
             if data[2]:
                 break
 
-    with st.container():
-        with frame2.container():
-            st.text(output_path)
-            st.video(output_path)
-            
-
-# with col2:
-#     if filename != "":
-#         # image_gen = process_video(
-#         #     filename, output_path, conf_slider, iou_slider, agnostic_nms_checkbox
-#         # )
-
-#         if run:
-#             frame1 = st.empty()
-#             frame2 = st.empty()
-
-#             threading.Thread(
-#                 target=process_video,
-#                 daemon=is_exit_target_if_main_exits,
-#                 args=(
-#                     filename,
-#                     output_path,
-#                     conf_slider,
-#                     iou_slider,
-#                     agnostic_nms_checkbox,
-#                 ),
-#             ).start()
-
-#             while True:
-#                 data = q.get()
-                
-#                 with frame1.container():
-#                     st.image(data[0], channels="RGB")
-                    
-#                 if data[2]:
-#                     break
-
-#             with frame1.container():
-#                 st.image(data[0], channels="RGB")
-                
-#             with frame2.container():
-#                 st.video(data[2])
-
-                        
-                    
-                # with frame1.container():
-                #     while True:
-                #         data = q.get()
-                #         frame1.image(data[0], channels="RGB")
-                    
-                #         if data[2]:
-                #             processed_video = data[2]
-                #             break
-                            
-                #         q.task_done()
-                
-                # with frame2.container():
-                    
-                
-                # with frame3.container():
-                #     if fin and processed_video:
-                #         st.video(processed_video)
-
-                # while not stop_process or not fin:
-                #     with st.empty():
-                #         for i, j, k in image_gen:
-                #             st.image(i, channels="RGB")
-
-                #             classes = j
-
-                #             if k:
-                #                 processed_video = k
-
-                #         if processed_video:
-                #             break
+    with frame3.container():
+        st.video(output_path)
+        st.markdown(output_path)
