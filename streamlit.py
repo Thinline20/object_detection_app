@@ -367,15 +367,12 @@ def process_video(video, output_path: str, conf: float, iou: float, agnostic_nms
         video.write(cv2.cvtColor(processed_frame, cv2.COLOR_RGB2BGR))
         ret, frame = capture.read()
 
-        # yield processed_frame, labels, None
         q.put([processed_frame, labels, None])
 
     fin = True
     capture.release()
 
-    # yield processed_frame, labels, output_path
     q.put([processed_frame, labels, True])
-    # video.release()
     
     return
 
