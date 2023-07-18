@@ -450,32 +450,16 @@ if run:
 
         # df = pd.DataFrame.from_dict(counter, orient="index").reset_index()
         df = pd.DataFrame.from_dict(danger_list, orient="index", columns=["level", "count"])
-        
-        # danger_list = [dangerous_level[label] for label in data[1]]
-        # danger_set = set(danger_list)
-        
-        # for i in range(1, 6):
-        #     count = 0
-            
-        #     for v in danger_list:
-        #         if v == i:
-        #             count += 1
-                    
-        #     counter[i] = count
-                
-        # df = pd.DataFrame.from_dict(counter, orient="index")
 
         with st.container():
             with frame1.container():
                 st.image(data[0], channels="RGB")
                 
             with frame2.container():
-                # fig = px.histogram(df, x=range(1, 6), y="count")
                 fig = px.bar(x=range(1,6), y=hist_data)
 
                 st.plotly_chart(fig)
                 st.dataframe(df, use_container_width=True)
-                # st.text(df)
                 
             if data[2]:
                 break
